@@ -50,7 +50,9 @@ def main():
         for event in gamepad.read_loop():
             #print(event)
             if event.type == ecodes.EV_ABS:
-                if event.code == 0:
+                if event.code == 1 || 
+                   event.code == 4 || 
+                   event.code == 17:
                     duty = translateAbsEventToDuty(event)
                     print("duty returned: ", duty)
                     pwm.ChangeDutyCycle(duty)
