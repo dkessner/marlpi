@@ -7,6 +7,9 @@ import RPi.GPIO as GPIO
 import time
 
 
+codePinMap = {1 : 21, 4: 21, 16: 21}
+
+
 #gamepad = InputDevice('/dev/input/event2')
 gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
 
@@ -54,7 +57,8 @@ def main():
         for event in gamepad.read_loop():
             #print(event)
             if event.type == ecodes.EV_ABS:
-                if event.code == 1 or event.code == 4 or event.code == 17:
+                if event.code in codePinMap:
+                    pin = codePinMap[event.code]
                     duty = translateAbsEventToDuty(event)
                     print("duty returned: ", duty)
                     pwm.ChangeDutyCycle(duty)
