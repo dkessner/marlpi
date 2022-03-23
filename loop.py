@@ -7,8 +7,8 @@ import RPi.GPIO as GPIO
 import time
 
 
-gamepad = InputDevice('/dev/input/event2')
-#gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
+#gamepad = InputDevice('/dev/input/event2')
+gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
 
 # GPIO servo initialization
 
@@ -26,7 +26,11 @@ pwm.start(dutyMid)
 
 
 def getAbsInfo(code):
-    return gamepad.capabilities()[3][code][1]
+    for c, info in gamepad.capabilities()[3]:
+        if c == code:
+            return info
+    return Null
+
 
 def translateAbsEventToDuty(event):
     # convert event.value in [eventMin, eventMax] 
@@ -50,9 +54,7 @@ def main():
         for event in gamepad.read_loop():
             #print(event)
             if event.type == ecodes.EV_ABS:
-                if event.code == 1 || 
-                   event.code == 4 || 
-                   event.code == 17:
+                if event.code == 1 or event.code == 4 or event.code == 17:
                     duty = translateAbsEventToDuty(event)
                     print("duty returned: ", duty)
                     pwm.ChangeDutyCycle(duty)
