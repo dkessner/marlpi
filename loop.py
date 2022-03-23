@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# marlpi 
 
+from __future__ import print_function
 from evdev import InputDevice, categorize, ecodes
 import RPi.GPIO as GPIO
 import time
@@ -15,17 +15,22 @@ gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49
 
 # GPIO servo initialization
 
-servoPIN = 21
-
 dutyMin = 3.5
 dutyMid = 7.1
 dutyMax = 10.5
 
+pwms = {}
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(servoPIN, GPIO.OUT)
-pwm = GPIO.PWM(servoPIN, 50)
-pwm.start(dutyMid)
+def initializePWMs():
+    GPIO.setmode(GPIO.BCM)
+    for pin in set(codePinMap.values()):
+        print("initializing pin", pin)
+        GPIO.setup(pin, GPIO.OUT)
+        pwm = GPIO.PWM(pin, 50)
+        pwm.start(dutyMid)
+        pwms[pin] = pwm
+
+initializePWMs()
 
 
 def getAbsInfo(code):
@@ -47,28 +52,30 @@ def translateAbsEventToDuty(event):
     if duty <= dutyMin: duty = dutyMin
     if duty >= dutyMax: duty = dutyMax
 
-    print("abs event:", event.code, event.value, eventMin, eventMax, duty)
+    #print("abs event:", event.code, event.value, eventMin, eventMax, duty)
     return duty
 
 
-def main():
 
+def cleanup():
+    for pwm in pwms:
+        print("Cleaning up")
+        pwm.ChangeDutyCycle(midpoint)
+        pwm.stop()
+    GPIO.cleanup()
+
+
+def main():
     try:
         for event in gamepad.read_loop():
-            #print(event)
             if event.type == ecodes.EV_ABS:
                 if event.code in codePinMap:
                     pin = codePinMap[event.code]
                     duty = translateAbsEventToDuty(event)
-                    print("duty returned: ", duty)
-                    pwm.ChangeDutyCycle(duty)
-
+                    pwms[pin].ChangeDutyCycle(duty)
+                    print("event: ", event.code, pin, duty)
     except KeyboardInterrupt:
-        print("Cleaning up")
-        pwm.ChangeDutyCycle(midpoint)
-        pwm.stop()
-        GPIO.cleanup()
-
+        cleanup()
 
 if __name__ == '__main__':
     main()
