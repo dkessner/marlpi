@@ -5,7 +5,7 @@ import sys
 import RPi.GPIO as GPIO
 import time
 
-servoPIN = 21
+servoPIN = 13
 
 def cleanup():
     GPIO.setmode(GPIO.BCM)

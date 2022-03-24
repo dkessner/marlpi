@@ -6,20 +6,26 @@ from evdev import InputDevice, categorize, ecodes
 import RPi.GPIO as GPIO
 import time
 
-
-codePinMap = {1 : 21, 4: 21, 16: 21}
-
-
 #gamepad = InputDevice('/dev/input/event2')
 gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
 
-# GPIO servo initialization
+codePinMap = {4 : 21, 1: 13, 16: 26} # map gamepad code -> GPIO pin
 
-dutyMin = 3.5
-dutyMid = 7.1
-dutyMax = 10.5
+pinReversed = {21: True}
 
+class ServoInfo:
+    def __init__(self, dutyMin = 3.5, dutyMid = 7.2, dutyMax = 10.5):
+        self.dutyMin = dutyMin
+        self.dutyMid = dutyMid
+        self.dutyMax = dutyMax
+
+servoInfoMap = {}
 pwms = {}
+
+def initializeServoInfoMap():
+    servoInfoMap[21] = ServoInfo(dutyMid=7.3)
+    servoInfoMap[13] = ServoInfo()
+    servoInfoMap[26] = ServoInfo()
 
 def initializePWMs():
     GPIO.setmode(GPIO.BCM)
@@ -27,10 +33,9 @@ def initializePWMs():
         print("initializing pin", pin)
         GPIO.setup(pin, GPIO.OUT)
         pwm = GPIO.PWM(pin, 50)
-        pwm.start(dutyMid)
+        pwm.start(servoInfoMap[pin].dutyMid)
         pwms[pin] = pwm
 
-initializePWMs()
 
 
 def getAbsInfo(code):
@@ -47,12 +52,18 @@ def translateAbsEventToDuty(event):
     eventMax = float(getAbsInfo(event.code).max)
     duty = float(event.value - eventMin)/(eventMax-eventMin)*10 + 2.5
 
-    if abs(duty-dutyMid) < .5:
-         duty = dutyMid
-    if duty <= dutyMin: duty = dutyMin
-    if duty >= dutyMax: duty = dutyMax
+    pin = codePinMap[event.code]
+    servoInfo = servoInfoMap[pin]
 
-    #print("abs event:", event.code, event.value, eventMin, eventMax, duty)
+    if abs(duty-servoInfo.dutyMid) < .5:
+         duty = servoInfo.dutyMid
+    if duty <= servoInfo.dutyMin: duty = servoInfo.dutyMin
+    if duty >= servoInfo.dutyMax: duty = servoInfo.dutyMax
+
+    if pin in pinReversed and pinReversed[pin]:
+        duty = 14.4 - duty
+
+    print("abs event:", event.code, event.value, eventMin, eventMax, duty)
     return duty
 
 
@@ -66,6 +77,10 @@ def cleanup():
 
 
 def main():
+
+    initializeServoInfoMap()
+    initializePWMs()
+
     try:
         for event in gamepad.read_loop():
             if event.type == ecodes.EV_ABS:
