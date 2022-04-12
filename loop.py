@@ -7,9 +7,11 @@ import RPi.GPIO as GPIO
 import time
 
 #gamepad = InputDevice('/dev/input/event2')
-gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
+#gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Wireless_Gamepad_F710_BAB49F2A-event-joystick')
 
-codePinMap = {4 : 21, 1: 13, 16: 26} # map gamepad code -> GPIO pin
+gamepad = InputDevice('/dev/input/by-id/usb-Logitech_Logitech_Cordless_RumblePad_2-event-joystick')
+
+codePinMap = {5 : 21, 1: 13, 16: 26} # map gamepad code -> GPIO pin
 
 pinReversed = {21: True}
 
