@@ -1,0 +1,7 @@
+
+
+## remove jitter by using pigpio
+
+https://ben.akrin.com/raspberry-pi-servo-jitter/
+
+
