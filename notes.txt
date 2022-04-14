@@ -5,3 +5,5 @@
 https://ben.akrin.com/raspberry-pi-servo-jitter/
 
 
+
+sudo pigpiod

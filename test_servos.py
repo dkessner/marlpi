@@ -6,6 +6,8 @@ import RPi.GPIO as GPIO
 import time
 
 servoPIN = 13
+#servoPIN = 21
+#servoPIN = 26
 
 def cleanup():
     GPIO.setmode(GPIO.BCM)
